@@ -1,0 +1,52 @@
+﻿@page "/details/{ids}"
+
+@using Web.Data
+@using Web.Entities
+@inject StatementService StatementService
+
+<h1>Lista de transações</h1>
+<br />
+<br />
+@if (transactions == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Data</th>
+                <th>Valor</th>
+                <th>Descrição</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var transaction in transactions)
+            {
+            <tr>
+                <td>@transaction.Type</td>
+                <td>@transaction.Date</td>
+                <td>@transaction.Ammount</td>
+                <td>@transaction.Memo</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    [Parameter]
+    public string Ids { get; set; }
+
+    private List<Transaction> transactions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ids = Ids.Split(';').Select(i => int.Parse(i)).ToArray();
+        transactions = await StatementService.GetConsolidatedTransactions(ids);
+    }
+
+}

@@ -1,0 +1,76 @@
+﻿@page "/list"
+
+@using Web.Data
+@using Web.Entities
+@inject StatementService StatementService
+@inject NavigationManager NavigationManager
+
+<h1>Lista de arquivos</h1>
+<br />
+<br />
+@if (files == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Id</th>
+                <th>Nome</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var file in files)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" @onchange="eventArgs => { CheckboxClicked(file.Id.ToString(), eventArgs.Value); }" />
+                    </td>
+                    <td>@file.Id</td>
+                    <td>@file.FileName</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <br />
+    <br />
+    <button class="btn btn-primary" @onclick="NavigateToDetails">
+        Consolidar
+    </button>
+}
+
+@code {
+    private List<File> files;
+    private List<string> selectedFiles = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        files = await StatementService.GetFiles();
+    }
+
+    void CheckboxClicked(string id, object checkedValue)
+    {
+        if ((bool)checkedValue)
+        {
+            if (!selectedFiles.Contains(id))
+            {
+                selectedFiles.Add(id);
+            }
+        }
+        else
+        {
+            if (selectedFiles.Contains(id))
+            {
+                selectedFiles.Remove(id);
+            }
+        }
+    }
+
+    private async Task NavigateToDetails(MouseEventArgs e)
+    {
+        NavigationManager.NavigateTo($"details/{string.Join(';', selectedFiles)}");
+    }
+}

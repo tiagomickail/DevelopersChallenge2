@@ -1,0 +1,53 @@
+﻿@page "/upload"
+
+@using Web.Data
+@inject StatementService StatementService
+@inject NavigationManager NavigationManager
+
+<h1>Upload de Arquivos</h1>
+<br />
+<br />
+<h4>Selecione os arquivos para realizar o upload</h4>
+<br />
+<InputFile OnChange="@OnInputFileChange" multiple />
+<br />
+@if (ofxFiles.Count > 0)
+{
+    <h4>Arquivos Selecionados</h4>
+
+    <div class="card" style="width:30rem;">
+        <div class="card-body">
+            @foreach (var file in ofxFiles)
+            {
+                <span>@file.Key</span><br />
+            }
+        </div>
+    </div>
+    <br />
+    <button class="btn btn-primary" @onclick="SendFiles">
+        Enviar arquivos para consolidação
+    </button>
+
+}
+
+@code {
+    private Dictionary<string, System.IO.MemoryStream> ofxFiles = new Dictionary<string, System.IO.MemoryStream>();
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+
+        foreach (var file in e.GetMultipleFiles())
+        {
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream().ReadAsync(buffer);
+
+            ofxFiles.Add(file.Name, new System.IO.MemoryStream(buffer));
+        }
+    }
+
+    private async Task SendFiles(MouseEventArgs e)
+    {
+        await StatementService.ImportOfxFiles(ofxFiles);
+        NavigationManager.NavigateTo("list");
+    }
+}
